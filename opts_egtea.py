@@ -102,7 +102,12 @@ def parse_opt():
         '--dec_head',
         type=int,
         default=4)
-        
+    parser.add_argument(
+        '--DSE',
+        default=False,
+        action='store_true',
+        help='Enable Dual-Scale Temporal Encoder. When omitted, MyNet runs as the baseline without DSE.')
+
     # Training settings
     parser.add_argument(
         '--batch_size',
