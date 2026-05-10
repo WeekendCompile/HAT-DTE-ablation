@@ -617,8 +617,11 @@ if __name__ == '__main__':
         # For reproducibility in multi-GPU training
         torch.cuda.manual_seed_all(seed)
            
-    opt['anchors'] = [int(item) for item in opt['anchors'].split(',')]  
-           
+    opt['anchors'] = [int(item) for item in opt['anchors'].split(',')]
+
+    print("[Config] DSE (Dual-Scale Temporal Encoder): {}".format(
+        "ENABLED" if opt.get('DSE', False) else "DISABLED (baseline MyNet only)"))
+
     main(opt)
     while(opt['wterm']):
         pass
