@@ -94,6 +94,7 @@ class MYNET(torch.nn.Module):
         dropout = 0.3
         self.best_loss = 1000000
         self.best_map = 0
+        self.use_dse = bool(opt.get("DSE", False))
         
         # Enhanced feature reduction with dynamic dropout
         self.feature_reduction_rgb = nn.Sequential(
@@ -117,12 +118,15 @@ class MYNET(torch.nn.Module):
             scale_factor=0.5
         )
         
-        # Unified Dual-Scale Temporal Encoder
-        self.temporal_encoder = DualScaleTemporalEncoder(
-            embedding_dim=n_embedding_dim,
-            num_heads=n_enc_head,
-            dropout=dropout
-        )
+        # Unified Dual-Scale Temporal Encoder (only built when --DSE is enabled)
+        if self.use_dse:
+            self.temporal_encoder = DualScaleTemporalEncoder(
+                embedding_dim=n_embedding_dim,
+                num_heads=n_enc_head,
+                dropout=dropout
+            )
+        else:
+            self.temporal_encoder = None
         
         # Main encoder (adaptive layers)
         self.encoder_layers = nn.ModuleList([
@@ -189,12 +193,14 @@ class MYNET(torch.nn.Module):
         
         # Apply positional encoding
         pe_x = self.positional_encoding(base_x)
-        
-        # Unified Dual-Scale Temporal Processing
-        temporal_features = self.temporal_encoder(pe_x)
-        
+
+        # Unified Dual-Scale Temporal Processing (skipped in baseline mode)
+        if self.use_dse:
+            encoded_x = self.temporal_encoder(pe_x)
+        else:
+            encoded_x = pe_x
+
         # Standard encoder processing
-        encoded_x = temporal_features
         for layer in self.encoder_layers:
             encoded_x = layer(encoded_x)
         
